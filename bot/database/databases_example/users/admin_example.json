@@ -1,0 +1,20 @@
+{
+    "telegram_id": 123456789,
+    "username": "admin_user",
+    "first_name": "Иван",
+    "last_name": "Петров",
+    "phone": "+79991234567",
+    "role": "admin",
+    "department": "Администрация",
+    "position": "Системный администратор",
+    "permissions": [
+      "user_management",
+      "role_management", 
+      "system_settings",
+      "view_all_reports",
+      "broadcast_messages"
+    ],
+    "managed_departments": ["Все отделы"],
+    "is_active": true,
+    "registered_at": "2024-01-15T10:00:00"
+  }

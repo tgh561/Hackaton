@@ -1,0 +1,13 @@
+{
+    "telegram_id": 555555555,
+    "username": "inspector_example",
+    "first_name": "Алексей",
+    "last_name": "Козлов",
+    "phone": "+79995555555",
+    "role": "inspector",
+    "department": "Отдел контроля качества",
+    "position": "Инспектор ОТК",
+    "inspection_zones": ["Цех №1", "Цех №2", "Склад"],
+    "is_active": true,
+    "registered_at": "2024-01-15T10:00:00"
+  }

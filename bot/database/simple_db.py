@@ -9,7 +9,7 @@ class UserRole(Enum):
     MANAGER = "manager"
     INSPECTOR = "inspector"
     ADMIN = "admin"
-
+    SUPERVISOR = "supervisor"
 
 class SimpleDB:
     def __init__(self, db_file: str = "users.json"):
