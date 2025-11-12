@@ -1,175 +1,101 @@
-# models/admin.py
-from .user import User
-from database import db, UserRole
-from messages.message_db import message_db
-from messages.message import MessageStatus
-import json
+# models/admin.py (дополняем)
+from ....я_ебу_че_с_этими_файлами_делать.inspectors_status_db import inspector_status_db
+from ..users.user import User
+from ..users.inspector import Inspector
 
 class Admin(User):
-    def __init__(self, telegram_id: int):
-        super().__init__(telegram_id)
-        self.permissions = self._load_permissions()
+    # ... существующий код ...
     
-    def _load_permissions(self):
-        """Загружает права админа из базы"""
-        user_data = db.get_user(self.telegram_id)
-        return user_data.get('permissions', [])
+    def manage_inspectors_status(self) -> dict:
+        """Управление статусами инспекторов"""
+        if not self.has_permission('user_management'):
+            return {'error': 'Недостаточно прав'}
+        
+        all_users = self.get_all_users()
+        inspectors = {uid: data for uid, data in all_users.items() 
+                     if data.get('role') == 'inspector'}
+        
+        status_info = {}
+        for telegram_id, inspector_data in inspectors.items():
+            status = inspector_status_db.get_inspector_status(int(telegram_id))
+            status_info[telegram_id] = {
+                'user_data': inspector_data,
+                'status_info': status
+            }
+        
+        return status_info
     
-    def has_permission(self, permission: str) -> bool:
-        """Проверяет наличие права у админа"""
-        return permission in self.permissions
-    
-    # Методы управления пользователями
-    def get_all_users(self) -> dict:
-        """Получает всех пользователей системы"""
-        return db.get_all_users()
-    
-    def get_user_by_telegram_id(self, telegram_id: int) -> dict:
-        """Получает пользователя по Telegram ID"""
-        return db.get_user(telegram_id)
-    
-    def create_user(self, telegram_id: int, username: str, first_name: str,
-                   last_name: str, role: UserRole, phone: str = None,
-                   department: str = None, position: str = None) -> bool:
-        """Создает нового пользователя"""
+    def set_inspector_active(self, target_telegram_id: int, is_active: bool, reason: str = None) -> bool:
+        """Устанавливает статус активности инспектора"""
         if not self.has_permission('user_management'):
             return False
         
+        # Проверяем, что целевой пользователь - инспектор
+        target_user = self.get_user_by_telegram_id(target_telegram_id)
+        if not target_user or target_user.get('role') != 'inspector':
+            return False
+        
+        inspector_status_db.set_inspector_active(target_telegram_id, is_active, reason)
+        return True
+    
+    def get_active_inspectors(self) -> list:
+        """Получает активных инспекторов"""
+        if not self.has_permission('user_management'):
+            return []
+        
+        active_ids = inspector_status_db.get_active_inspectors()
+        result = []
+        
+        for telegram_id_str in active_ids:
+            user_data = self.get_user_by_telegram_id(int(telegram_id_str))
+            status_info = inspector_status_db.get_inspector_status(int(telegram_id_str))
+            if user_data:
+                result.append({
+                    'user_data': user_data,
+                    'status_info': status_info
+                })
+        
+        return result
+    
+    def get_inactive_inspectors(self) -> list:
+        """Получает неактивных инспекторов"""
+        if not self.has_permission('user_management'):
+            return []
+        
+        inactive_ids = inspector_status_db.get_inactive_inspectors()
+        result = []
+        
+        for telegram_id_str in inactive_ids:
+            user_data = self.get_user_by_telegram_id(int(telegram_id_str))
+            status_info = inspector_status_db.get_inspector_status(int(telegram_id_str))
+            if user_data:
+                result.append({
+                    'user_data': user_data,
+                    'status_info': status_info
+                })
+        
+        return result
+    
+    def get_inspector_detailed_info(self, telegram_id: int) -> dict:
+        """Получает детальную информацию об инспекторе"""
+        if not self.has_permission('user_management'):
+            return {'error': 'Недостаточно прав'}
+        
+        user_data = self.get_user_by_telegram_id(telegram_id)
+        if not user_data or user_data.get('role') != 'inspector':
+            return {'error': 'Пользователь не является инспектором'}
+        
+        status_info = inspector_status_db.get_inspector_status(telegram_id)
+        
+        # Получаем статистику по сообщениям
         try:
-            db.create_user(
-                telegram_id=telegram_id,
-                username=username,
-                first_name=first_name,
-                last_name=last_name,
-                role=role,
-                phone=phone,
-                department=department,
-                position=position
-            )
-            return True
-        except Exception as e:
-            print(f"Error creating user: {e}")
-            return False
-    
-    def update_user_role(self, target_telegram_id: int, new_role: UserRole) -> bool:
-        """Изменяет роль пользователя"""
-        if not self.has_permission('role_management'):
-            return False
-        
-        return db.update_user_role(target_telegram_id, new_role)
-    
-    def update_user_info(self, target_telegram_id: int, **kwargs) -> bool:
-        """Обновляет информацию о пользователе"""
-        if not self.has_permission('user_management'):
-            return False
-        
-        return db.update_user(target_telegram_id, **kwargs)
-    
-    def deactivate_user(self, target_telegram_id: int) -> bool:
-        """Деактивирует пользователя"""
-        if not self.has_permission('user_management'):
-            return False
-        
-        return db.update_user(target_telegram_id, is_active=False)
-    
-    def activate_user(self, target_telegram_id: int) -> bool:
-        """Активирует пользователя"""
-        if not self.has_permission('user_management'):
-            return False
-        
-        return db.update_user(target_telegram_id, is_active=True)
-    
-    # Методы для работы с сообщениями
-    def get_all_messages(self, limit: int = 100) -> list:
-        """Получает все сообщения системы (с ограничением)"""
-        if not self.has_permission('view_all_reports'):
-            return []
-        
-        all_messages = list(message_db.messages.values())
-        return sorted(all_messages, key=lambda x: x.timestamp, reverse=True)[:limit]
-    
-    def get_messages_by_status(self, status: MessageStatus) -> list:
-        """Получает сообщения по статусу"""
-        if not self.has_permission('view_all_reports'):
-            return []
-        
-        return [msg for msg in message_db.messages.values() if msg.status == status]
-    
-    def broadcast_message(self, content: list, importance: int = 1) -> list:
-        """Отправляет сообщение всем пользователям"""
-        if not self.has_permission('broadcast_messages'):
-            return []
-        
-        all_users = db.get_all_users()
-        sent_messages = []
-        
-        for user_id_str, user_data in all_users.items():
-            if user_data.get('is_active', True):
-                message = self.send_message(
-                    content=content,
-                    recipient_telegram_id=user_data['telegram_id'],
-                    importance=importance
-                )
-                sent_messages.append(message)
-        
-        return sent_messages
-    
-    def get_system_stats(self) -> dict:
-        """Получает статистику системы"""
-        all_users = db.get_all_users()
-        all_messages = list(message_db.messages.values())
-        
-        # Статистика по ролям
-        roles_count = {}
-        for user_data in all_users.values():
-            role = user_data.get('role', 'unknown')
-            roles_count[role] = roles_count.get(role, 0) + 1
-        
-        # Статистика по сообщениям
-        messages_by_status = {}
-        for status in MessageStatus:
-            messages_by_status[status.value] = len([
-                msg for msg in all_messages if msg.status == status
-            ])
-        
-        # Активность
-        active_users = len([u for u in all_users.values() if u.get('is_active', True)])
+            inspector = Inspector(telegram_id)
+            stats = inspector.get_inspection_stats()
+        except:
+            stats = {'error': 'Не удалось получить статистику'}
         
         return {
-            'total_users': len(all_users),
-            'active_users': active_users,
-            'users_by_role': roles_count,
-            'total_messages': len(all_messages),
-            'messages_by_status': messages_by_status,
-            'system_health': 'optimal' if active_users > 0 else 'warning'
+            'user_data': user_data,
+            'status_info': status_info,
+            'inspection_stats': stats
         }
-    
-    def export_users_data(self, file_path: str = "users_export.json") -> bool:
-        """Экспортирует данные пользователей в файл"""
-        if not self.has_permission('user_management'):
-            return False
-        
-        try:
-            users_data = db.get_all_users()
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(users_data, f, ensure_ascii=False, indent=2)
-            return True
-        except Exception as e:
-            print(f"Error exporting users data: {e}")
-            return False
-    
-    def find_users_by_criteria(self, **criteria) -> list:
-        """Находит пользователей по критериям"""
-        all_users = db.get_all_users()
-        matching_users = []
-        
-        for user_id, user_data in all_users.items():
-            match = True
-            for key, value in criteria.items():
-                if user_data.get(key) != value:
-                    match = False
-                    break
-            if match:
-                matching_users.append(user_data)
-        
-        return matching_users
