@@ -1,0 +1,11 @@
+{
+  "place_1": {
+    "date": "date",
+    "searcher": "searcher_1_login"
+  },
+
+  "place_2": {
+    "date": "date",
+    "searcher": "searcher_2_login"
+  }
+}

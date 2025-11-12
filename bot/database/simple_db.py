@@ -103,12 +103,10 @@ class SimpleDB:
                     last_name: str, role: UserRole, phone: str = None):
         user_data = {
             'telegram_id': telegram_id,
-            'username': username,
             'first_name': first_name,
             'last_name': last_name,
             'phone': phone,
             'role': role.value,
-            'registered_at': datetime.now().isoformat(),
             'is_active': True
         }
         self.users[str(telegram_id)] = user_data

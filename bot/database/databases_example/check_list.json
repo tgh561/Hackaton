@@ -1,0 +1,45 @@
+{
+  "place_1": {
+    "sections": {
+      "later_of_section": "A",
+      "subsections": {
+        "later_of_section": "A1",
+        "points": {
+          "1": {
+            "problem": "",
+            "mark": true,
+            "comment": ""
+          },
+          "2": {
+            "problem": "",
+            "mark": false,
+            "comment": ""
+          }
+        }
+      }
+    },
+    "date": "date"
+  },
+
+  "place_2": {
+    "sections": {
+      "later_of_section": "A",
+      "subsections": {
+        "later_of_section": "A1",
+        "points": {
+          "1": {
+            "problem": "",
+            "mark": true,
+            "comment": ""
+          },
+          "2": {
+            "problem": "",
+            "mark": false,
+            "comment": ""
+          }
+        }
+      }
+    },
+    "date": "date"
+  }
+}

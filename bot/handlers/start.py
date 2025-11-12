@@ -78,7 +78,6 @@ async def cmd_profile(message: Message):
         f"Роль: {role_names[UserRole(user['role'])]}\n"
         f"Телефон: {user.get('phone', 'Не указан')}\n"
         f"Статус: {status}\n"
-        f"Регистрация: {user['registered_at'][:16].replace('T', ' ')}"
     )
 
 
