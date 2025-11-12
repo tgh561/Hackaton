@@ -1,7 +1,9 @@
 {
   "place_1": {
     "sections": {
-      "later_of_section": "A",
+      "section_1": {
+        "section_letter": "A"
+      },
       "subsections": {
         "later_of_section": "A1",
         "points": {
