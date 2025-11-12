@@ -1,11 +1,11 @@
 {
   "place_1": {
     "date": "date",
-    "searcher": "inspector_1_login"
+    "inspector": "inspector_1_login"
   },
 
   "place_2": {
     "date": "date",
-    "searcher": "inspector_2_login"
+    "inspector": "inspector_2_login"
   }
 }
