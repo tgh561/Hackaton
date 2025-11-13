@@ -18,6 +18,11 @@ def get_main_menu(role: str):
             KeyboardButton(text="⚠️ Отчеты об ошибках"),
             KeyboardButton(text="ℹ️ Помощь")
         )
+    elif role == "worker":
+        builder.add(
+            KeyboardButton(text="👤 Мой профиль"),
+            KeyboardButton(text="ℹ️ Помощь")
+        )
     else:
         builder.add(
             KeyboardButton(text="👤 Мой профиль"),
