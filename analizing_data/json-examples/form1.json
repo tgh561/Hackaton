@@ -1,0 +1,66 @@
+{
+  "file_name": "form1.json",
+  "revision_date": "2024-01-15",
+  "inspection_date": "2024-01-20",
+  "section_name": "Производственный цех №1",
+  "inspector": "Иванов А.С.",
+  "sections": {
+    "A": {
+      "description": "Организация рабочего места",
+      "criteria": [],
+      "subdivisions": {
+        "A1": {
+          "description": "Рабочий стол",
+          "criteria": [
+            {
+              "number": 1,
+              "description": "Стол чистый, без посторонних предметов",
+              "complies": 0,
+              "does_not_comply": 0,
+              "comment": "На столе обнаружены инструменты не по назначению"
+            },
+            {
+              "number": 2,
+              "description": "Поверхность стола без повреждений",
+              "complies": 1,
+              "does_not_comply": null,
+              "comment": ""
+            }
+          ]
+        },
+        "A2": {
+          "description": "Оборудование",
+          "criteria": [
+            {
+              "number": 3,
+              "description": "Оборудование исправно",
+              "complies": 0,
+              "does_not_comply": 0,
+              "comment": "Станок №5 требует регулировки"
+            }
+          ]
+        }
+      }
+    },
+    "B": {
+      "description": "Средства индивидуальной защиты",
+      "criteria": [
+        {
+          "number": 4,
+          "description": "Каска надета правильно",
+          "complies": 0,
+          "does_not_comply": 0,
+          "comment": "Рабочий Петров И.С. без каски"
+        },
+        {
+          "number": 5,
+          "description": "Перчатки соответствуют требованиям",
+          "complies": 1,
+          "does_not_comply": null,
+          "comment": ""
+        }
+      ],
+      "subdivisions": {}
+    }
+  }
+}

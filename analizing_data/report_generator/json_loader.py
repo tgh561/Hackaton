@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-from data_model import ChecklistData
+from .data_model import ChecklistData
 
 class JsonLoader:
     @staticmethod

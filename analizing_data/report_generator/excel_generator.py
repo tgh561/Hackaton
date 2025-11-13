@@ -1,9 +1,7 @@
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
-from openpyxl.utils import get_column_letter
 from pathlib import Path
-from typing import Dict
-from data_model import ChecklistData
+from .data_model import ChecklistData
 
 class ExcelGenerator:
     def generate(self, data: ChecklistData, output_path: Path) -> Path:
@@ -24,10 +22,10 @@ class ExcelGenerator:
         for section_key, section in data.sections.items():
             row_idx = self._add_section(ws, section_key, section, row_idx)
 
-        self._add_overall_score(ws, data.overall_score, row_idx)
-        row_idx += 3
+        # Убрали добавление итоговой оценки
+        row_idx += 2
         self._add_signature_block(ws, row_idx)
-        self._add_footer_note(ws, row_idx + 4)
+        # Убрали добавление примечания об итоговой оценке
         
         self._apply_styles(ws)
         wb.save(output_path)
@@ -79,47 +77,54 @@ class ExcelGenerator:
         ws.cell(row=row_idx, column=2).value = section.description
         row_idx += 1
 
+        section_total = 0
+        
         if section.subdivisions:
             for sub_key, sub in section.subdivisions.items():
-                row_idx = self._add_subdivision(ws, sub_key, sub, row_idx)
+                row_idx, sub_total = self._add_subdivision(ws, sub_key, sub, row_idx)
+                section_total += sub_total
         else:
-            row_idx = self._add_criteria(ws, section.criteria, row_idx)
+            row_idx, section_total = self._add_criteria(ws, section.criteria, row_idx)
 
-        if section.total_score is not None:
-            ws.cell(row=row_idx, column=2).value = f"Общий балл за раздел {key}"
-            ws.cell(row=row_idx, column=3).value = round(section.total_score, 2)
-            row_idx += 2
+        # Добавляем общий балл за раздел (сумма всех баллов)
+        ws.cell(row=row_idx, column=2).value = f"Общий балл за раздел {key}"
+        ws.cell(row=row_idx, column=3).value = section_total
+        row_idx += 2
         
         return row_idx
 
-    def _add_subdivision(self, ws, key: str, sub, row_idx: int) -> int:
+    def _add_subdivision(self, ws, key: str, sub, row_idx: int) -> tuple:
         # Заголовок подраздела
         ws.cell(row=row_idx, column=1).value = key
         ws.cell(row=row_idx, column=2).value = sub.description
         row_idx += 1
-        row_idx = self._add_criteria(ws, sub.criteria, row_idx)
         
-        if sub.total_score is not None:
-            ws.cell(row=row_idx, column=2).value = f"Общий балл за подраздел {key}"
-            ws.cell(row=row_idx, column=3).value = round(sub.total_score, 2)
-            row_idx += 2
+        # Добавляем критерии и получаем сумму баллов
+        row_idx, sub_total = self._add_criteria(ws, sub.criteria, row_idx)
         
-        return row_idx
+        # Добавляем общий балл за подраздел (сумма всех баллов)
+        ws.cell(row=row_idx, column=2).value = f"Общий балл за подраздел {key}"
+        ws.cell(row=row_idx, column=3).value = sub_total
+        row_idx += 2
+        
+        return row_idx, sub_total
 
-    def _add_criteria(self, ws, criteria, row_idx: int) -> int:
+    def _add_criteria(self, ws, criteria, row_idx: int) -> tuple:
+        total_score = 0
         for crit in criteria:
             ws.cell(row=row_idx, column=1).value = crit.number
             ws.cell(row=row_idx, column=2).value = crit.description
-            ws.cell(row=row_idx, column=3).value = "✓" if crit.complies == 1 else ""
-            ws.cell(row=row_idx, column=4).value = "✓" if crit.does_not_comply == 0 else ""
+            
+            # Заменяем галочки на числа: 1 для соответствует, 0 для не соответствует
+            score = 1 if crit.complies == 1 else 0
+            ws.cell(row=row_idx, column=3).value = 1 if crit.complies == 1 else ""
+            ws.cell(row=row_idx, column=4).value = 0 if crit.does_not_comply == 0 else ""
             ws.cell(row=row_idx, column=5).value = crit.comment
+            
+            total_score += score
             row_idx += 1
-        return row_idx
-
-    def _add_overall_score(self, ws, score: float, row_idx: int):
-        ws.merge_cells(f'B{row_idx}:D{row_idx}')
-        ws.cell(row=row_idx, column=2).value = "Итоговая оценка структурному подразделению"
-        ws.cell(row=row_idx, column=5).value = round(score, 2) if score is not None else 0
+        
+        return row_idx, total_score
 
     def _add_signature_block(self, ws, row_idx: int):
         """Добавляет блок для подписи"""
@@ -136,23 +141,6 @@ class ExcelGenerator:
             for col in range(1, 6):
                 cell = ws.cell(row=row, column=col)
                 cell.alignment = Alignment(horizontal='left', vertical='center')
-
-    def _add_footer_note(self, ws, row_idx: int):
-        """Добавляет примечание внизу"""
-        note_text = (
-            "* Итоговая оценка структурному подразделению проставляется проверяющим при выявлении одного и того же "
-            "несоответствия 2 раза в размере «3 балла», при выявлении одного и того же несоответствия более 2 раз - «2 балла». "
-            "При отсутствии повторяющихся несоответствий в ходе проведения проверки данная графа проверяющим не заполняется."
-        )
-        
-        ws.merge_cells(f'A{row_idx}:E{row_idx+2}')  # Объединяем для многострочного текста
-        cell = ws.cell(row=row_idx, column=1)
-        cell.value = note_text
-        cell.alignment = Alignment(horizontal='left', vertical='top', wrap_text=True)
-        cell.font = Font(italic=True, size=9)
-        
-        # Устанавливаем высоту строки для примечания
-        ws.row_dimensions[row_idx].height = 60
 
     def _apply_styles(self, ws):
         # Определяем стили
@@ -186,9 +174,9 @@ class ExcelGenerator:
                     else:
                         cell.alignment = left_align
         
-        # Специальные стили для итоговой оценки
+        # Специальные стили для итоговых баллов
         for row in ws.iter_rows():
             for cell in row:
-                if cell.value and "Итоговая оценка" in str(cell.value):
+                if cell.value and "Общий балл" in str(cell.value):
                     cell.font = Font(bold=True, size=12)
                     cell.fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")

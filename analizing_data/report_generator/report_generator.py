@@ -1,7 +1,7 @@
 from pathlib import Path
-from data_model import ChecklistData
-from score_calculator import ScoreCalculator
-from excel_generator import ExcelGenerator
+from .data_model import ChecklistData 
+from .score_calculator import ScoreCalculator
+from .excel_generator import ExcelGenerator
 
 class ReportGenerator:
     def __init__(self, calculator: ScoreCalculator, generator: ExcelGenerator):

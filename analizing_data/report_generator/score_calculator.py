@@ -1,5 +1,4 @@
-from data_model import Section, Subdivision, ChecklistData
-
+from .data_model import Section, Subdivision, ChecklistData
 class ScoreCalculator:
     @staticmethod
     def calculate_section_score(section: Section) -> float:
