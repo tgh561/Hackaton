@@ -100,6 +100,29 @@ class PlacesDB:
         self._save_search()
         return True
 
+    def get_approved_inspections_by_inspector(self, inspector_id: str) -> Dict:
+        """Возвращает согласованные проверки для проверяющего (с назначенным временем)"""
+        inspector_id_str = str(inspector_id)
+        approved_inspections = {}
+
+        for place_id, inspection_data in self.search.items():
+            if (inspection_data.get('inspector') == inspector_id_str and
+                    inspection_data.get('date') not in [None, 'Не назначена', 'date'] and
+                    inspection_data.get('date') != 'Не назначена'):
+                approved_inspections[place_id] = inspection_data
+
+        return approved_inspections
+
+    def get_inspection_status(self, place_id: str) -> str:
+        """Возвращает статус проверки"""
+        inspection_data = self.search.get(place_id, {})
+        date = inspection_data.get('date', 'Не назначена')
+
+        if date in [None, 'Не назначена', 'date']:
+            return 'pending'
+        else:
+            return 'approved'
+
 
 # Глобальный экземпляр БД
 places_db = PlacesDB()

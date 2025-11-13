@@ -6,10 +6,23 @@ from aiogram.types import Message, ReplyKeyboardRemove
 
 from utils.states import RegistrationStates
 from keyboards.auth_keyboards import get_phone_keyboard, get_role_keyboard
-
 from keyboards.inspector_keyboards import get_inspector_main_keyboard
-
 from database.simple_db import db, UserRole
+
+# Добавляем импорт для бригадира
+try:
+    from keyboards.supervisor_keyboards import get_supervisor_main_keyboard
+except ImportError:
+    # Если файла нет, создаем функцию здесь
+    def get_supervisor_main_keyboard():
+        return ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text="📋 Мои объекты"), KeyboardButton(text="👁️ Просмотр чек-листов")],
+                [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="ℹ️ Помощь")],
+                [KeyboardButton(text="🔙 В главное меню")]
+            ],
+            resize_keyboard=True
+        )
 
 router = Router()
 
@@ -21,14 +34,92 @@ def get_main_keyboard(user_role: UserRole):
         keyboard.append([KeyboardButton(text="👨‍💼 Админ панель")])
     elif user_role == UserRole.INSPECTOR:
         keyboard.append([KeyboardButton(text="👁️ Панель проверяющего")])
+    elif user_role == UserRole.MANAGER:
+        keyboard.append([KeyboardButton(text="👷 Панель бригадира")])  # ← ДОБАВЬТЕ ЭТУ СТРОКУ!
+
     # Общие кнопки для всех ролей
     keyboard.extend([
         [KeyboardButton(text="👤 Мой профиль")],
+        [KeyboardButton(text="🔄 Сменить роль")],
         [KeyboardButton(text="ℹ️ Помощь")]
     ])
 
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
+@router.message(F.text == "🔄 Сменить роль")
+async def cmd_change_role(message: Message, state: FSMContext):
+    user = db.get_user(message.from_user.id)
+
+    if not user:
+        await message.answer("❌ Вы не зарегистрированы в системе.")
+        return
+
+    await message.answer(
+        "Выберите новую роль:",
+        reply_markup=get_role_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_role_change)
+
+
+@router.message(RegistrationStates.waiting_for_role_change,
+                F.text.in_(["👷 Рабочий", "👨‍💼 Руководитель", "👁️ Проверяющий"]))
+async def process_role_change(message: Message, state: FSMContext):
+    role_mapping = {
+        "👷 Рабочий": UserRole.WORKER,
+        "👨‍💼 Руководитель": UserRole.MANAGER,
+        "👁️ Проверяющий": UserRole.INSPECTOR
+    }
+
+    new_role = role_mapping[message.text]
+    user = db.get_user(message.from_user.id)
+
+    if not user:
+        await message.answer("❌ Пользователь не найден.")
+        await state.clear()
+        return
+
+    # Сохраняем старую роль для сообщения
+    old_role_name = {
+        UserRole.WORKER: "👷 Рабочий",
+        UserRole.MANAGER: "👨‍💼 Руководитель",
+        UserRole.INSPECTOR: "👁️ Проверяющий",
+        UserRole.ADMIN: "👨‍💼 Администратор"
+    }[UserRole(user['role'])]
+
+    # Обновляем роль пользователя
+    success = db.update_user_role(message.from_user.id, new_role)
+
+    if success:
+        new_user_data = db.get_user(message.from_user.id)
+        user_role = UserRole(new_user_data['role'])
+
+        await message.answer(
+            f"✅ Роль успешно изменена!\n"
+            f"Старая роль: {old_role_name}\n"
+            f"Новая роль: {message.text}",
+            reply_markup=get_main_keyboard(user_role)
+        )
+    else:
+        await message.answer(
+            "❌ Не удалось изменить роль. Попробуйте позже.",
+            reply_markup=get_main_keyboard(UserRole(user['role']))
+        )
+
+    await state.clear()
+
+
+@router.message(RegistrationStates.waiting_for_role_change, F.text == "❌ Отмена")
+async def cancel_role_change(message: Message, state: FSMContext):
+    user = db.get_user(message.from_user.id)
+    if user:
+        user_role = UserRole(user['role'])
+        await message.answer(
+            "Смена роли отменена.",
+            reply_markup=get_main_keyboard(user_role)
+        )
+    else:
+        await message.answer("Смена роли отменена.", reply_markup=ReplyKeyboardRemove())
+    await state.clear()
 
 @router.message(Command("start"))
 @router.message(F.text == "🔙 В главное меню")
@@ -123,7 +214,8 @@ async def process_role(message: Message, state: FSMContext):
     await message.answer(
         f"✅ Регистрация завершена!\n"
         f"Роль: {message.text}\n"
-        f"Телефон: {user_data.get('phone')}",
+        f"Телефон: {user_data.get('phone')}\n"
+        f"Для запуска меню пропишите команду /start",
         reply_markup=ReplyKeyboardRemove()
     )
     await state.clear()
@@ -191,6 +283,19 @@ async def cmd_help(message: Message):
 
     await message.answer(help_text)
 
+@router.message(F.text == "👷 Панель бригадира")
+async def supervisor_panel(message: Message):
+    user = db.get_user(message.from_user.id)
+
+    if not user or UserRole(user['role']) != UserRole.MANAGER:
+        await message.answer("❌ У вас нет прав доступа к панели бригадира.")
+        return
+
+    await message.answer(
+        "👷 Панель бригадира\n\n"
+        "Выберите действие:",
+        reply_markup=get_supervisor_main_keyboard()
+    )
 
 @router.message(F.text == "👁️ Панель проверяющего")
 async def inspector_panel(message: Message):

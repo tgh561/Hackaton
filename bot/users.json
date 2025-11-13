@@ -1,185 +1,128 @@
 {
-    "123456789": {
-      "telegram_id": 123456789,
-      "username": "admin_user",
-      "first_name": "Иван",
-      "last_name": "Петров",
-      "phone": "+79991234567",
-      "role": "admin",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
+  "123456789": {
+    "telegram_id": 123456789,
+    "username": "admin_user",
+    "first_name": "Иван",
+    "last_name": "Петров",
+    "phone": "+79991234567",
+    "role": "admin",
+    "registered_at": "2025-11-13T18:26:08.084831",
+    "is_active": true
+  },
+  "987654321": {
+    "telegram_id": 987654321,
+    "username": "manager_user",
+    "first_name": "Мария",
+    "last_name": "Сидорова",
+    "phone": "+79997654321",
+    "role": "manager",
+    "registered_at": "2025-11-13T18:26:08.084831",
+    "is_active": true
+  },
+  "555555555": {
+    "telegram_id": 555555555,
+    "username": "inspector_user",
+    "first_name": "Алексей",
+    "last_name": "Козлов",
+    "phone": "+79995555555",
+    "role": "inspector",
+    "registered_at": "2025-11-13T18:26:08.084831",
+    "is_active": true
+  },
+  "111111111": {
+    "telegram_id": 111111111,
+    "username": "worker1",
+    "first_name": "Сергей",
+    "last_name": "Иванов",
+    "phone": "+79991111111",
+    "role": "worker",
+    "registered_at": "2025-11-13T18:26:08.084831",
+    "is_active": true
+  },
+  "222222222": {
+    "telegram_id": 222222222,
+    "username": "worker2",
+    "first_name": "Ольга",
+    "last_name": "Смирнова",
+    "phone": "+79992222222",
+    "role": "worker",
+    "registered_at": "2025-11-13T18:26:08.084831",
+    "is_active": true
+  },
+  "inspections": {
+    "1": {
+      "id": 1,
+      "location": "Строительная площадка №1",
+      "manager_id": 987654321,
+      "inspector_id": 555555555,
+      "scheduled_time": null,
+      "status": "pending",
+      "created_at": "2025-11-13T18:26:08.084831",
+      "proposed_time": null,
+      "rejection_reason": null,
+      "alternative_time": null
     },
-    "987654321": {
-      "telegram_id": 987654321,
-      "username": "manager_ivanov",
-      "first_name": "Сергей",
-      "last_name": "Иванов",
-      "phone": "+79991112233",
-      "role": "manager",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "555555555": {
-      "telegram_id": 555555555,
-      "username": "manager_sidorov",
-      "first_name": "Александр",
-      "last_name": "Сидоров",
-      "phone": "+79994445566",
-      "role": "manager",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "666666666": {
-      "telegram_id": 666666666,
-      "username": "inspector_kuznetsov",
-      "first_name": "Дмитрий",
-      "last_name": "Кузнецов",
-      "phone": "+79997778899",
-      "role": "inspector",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "777777777": {
-      "telegram_id": 777777777,
-      "username": "inspector_smirnova",
-      "first_name": "Елена",
-      "last_name": "Смирнова",
-      "phone": "+79993334455",
-      "role": "inspector",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "111111111": {
-      "telegram_id": 111111111,
-      "username": "worker1",
-      "first_name": "Петр",
-      "last_name": "Васильев",
-      "phone": "+79991111111",
-      "role": "worker",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "222222222": {
-      "telegram_id": 222222222,
-      "username": "worker2",
-      "first_name": "Мария",
-      "last_name": "Попова",
-      "phone": "+79992222222",
-      "role": "worker",
-      "registered_at": "2025-11-13T14:21:06.241303",
-      "is_active": true
-    },
-    "inspections": {
-      "1": {
-        "id": 1,
-        "location": "Строительная площадка \"Северный\"",
-        "manager_id": 987654321,
-        "inspector_id": 666666666,
-        "scheduled_time": null,
-        "status": "pending",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": null,
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Проверка фундамента и несущих конструкций"
-      },
-      "2": {
-        "id": 2,
-        "location": "ЖК \"Солнечный берег\", корпус 3",
-        "manager_id": 555555555,
-        "inspector_id": 666666666,
-        "scheduled_time": null,
-        "status": "pending",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": "25.12.2023 14:30",
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Контроль качества отделочных работ"
-      },
-      "3": {
-        "id": 3,
-        "location": "Торговый центр \"Метрополис\"",
-        "manager_id": 987654321,
-        "inspector_id": 777777777,
-        "scheduled_time": "20.12.2023 10:00",
-        "status": "scheduled",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": "20.12.2023 10:00",
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Проверка систем пожарной безопасности"
-      },
-      "4": {
-        "id": 4,
-        "location": "Офисное здание \"Бизнес-парк\"",
-        "manager_id": 555555555,
-        "inspector_id": 777777777,
-        "scheduled_time": null,
-        "status": "rejected",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": "18.12.2023 16:00",
-        "rejection_reason": "В это время проводятся совещания с заказчиком. Предлагаю 19.12.2023 11:00",
-        "alternative_time": "19.12.2023 11:00",
-        "description": "Проверка электромонтажных работ"
-      },
-      "5": {
-        "id": 5,
-        "location": "Стадион \"Олимпийский\"",
-        "manager_id": 987654321,
-        "inspector_id": 666666666,
-        "scheduled_time": "15.12.2023 09:00",
-        "status": "completed",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": "15.12.2023 09:00",
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Приемка ремонтных работ трибун"
-      },
-      "6": {
-        "id": 6,
-        "location": "Школа №45, реконструкция",
-        "manager_id": 555555555,
-        "inspector_id": null,
-        "scheduled_time": null,
-        "status": "pending",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": null,
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Контроль сантехнических работ"
-      },
-      "7": {
-        "id": 7,
-        "location": "Больница №3, новый корпус",
-        "manager_id": 987654321,
-        "inspector_id": null,
-        "scheduled_time": null,
-        "status": "pending",
-        "created_at": "2025-11-13T14:21:06.242322",
-        "proposed_time": null,
-        "rejection_reason": null,
-        "alternative_time": null,
-        "description": "Проверка монтажа медицинского оборудования"
-      }
-    },
-    "893263404": {
-      "telegram_id": 893263404,
-      "username": "dogigio",
-      "first_name": "Максим",
-      "last_name": null,
-      "phone": "+375336136087",
-      "role": "inspector",
-      "registered_at": "2025-11-13T14:25:54.116958",
-      "is_active": true
-    },
-    "2038861353": {
-      "telegram_id": 2038861353,
-      "username": "Unyphizik",
-      "first_name": "Марк",
-      "last_name": null,
-      "phone": "+375445129799",
-      "role": "manager",
-      "registered_at": "2025-11-13T14:31:59.603586",
-      "is_active": true
+    "2": {
+      "id": 2,
+      "location": "Офисное здание №2",
+      "manager_id": 987654321,
+      "inspector_id": null,
+      "scheduled_time": null,
+      "status": "pending",
+      "created_at": "2025-11-13T18:26:08.084831",
+      "proposed_time": null,
+      "rejection_reason": null,
+      "alternative_time": null
     }
+  },
+  "2038861353": {
+    "telegram_id": 2038861353,
+    "username": "Unyphizik",
+    "first_name": "Марк",
+    "last_name": null,
+    "phone": "+375445129799",
+    "role": "inspector",
+    "registered_at": "2025-11-13T18:26:44.651033",
+    "is_active": true
+  },
+  "893263404": {
+    "telegram_id": 893263404,
+    "username": "dogigio",
+    "first_name": "Максим",
+    "last_name": null,
+    "phone": "375336136087",
+    "role": "inspector",
+    "registered_at": "2025-11-13T18:54:48.111745",
+    "is_active": true
+  },
+  "554598658": {
+    "telegram_id": 554598658,
+    "username": "Vika_Litoshko",
+    "first_name": "Вика",
+    "last_name": "Дмитриевна",
+    "phone": "375256325130",
+    "role": "manager",
+    "registered_at": "2025-11-13T19:53:53.173850",
+    "is_active": true
+  },
+  "1443427494": {
+    "telegram_id": 1443427494,
+    "username": "glive0",
+    "first_name": "егормейстер",
+    "last_name": null,
+    "phone": "375447668693",
+    "role": "inspector",
+    "registered_at": "2025-11-13T20:01:38.291383",
+    "is_active": true
+  },
+  "1104083040": {
+    "telegram_id": 1104083040,
+    "username": "toxa_b",
+    "first_name": "Anton",
+    "last_name": null,
+    "phone": "375333620167",
+    "role": "inspector",
+    "registered_at": "2025-11-13T23:48:05.047701",
+    "is_active": true
   }
+}

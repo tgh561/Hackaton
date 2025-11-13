@@ -1,14 +1,14 @@
 {
   "place_1": {
     "date": "Не назначена",
-    "inspector": "666666666"
+    "inspector": "1443427494"
   },
   "place_2": {
     "date": "23:00",
-    "inspector": "893263404"
+    "inspector": "1443427494"
   },
   "place_3": {
-    "date": "12:00",
+    "date": "23:00",
     "inspector": "893263404"
   },
   "place_4": {
@@ -17,6 +17,6 @@
   },
   "place_5": {
     "date": "Не назначена",
-    "inspector": "Не назначен"
+    "inspector": "1443427494"
   }
 }
