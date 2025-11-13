@@ -19,7 +19,7 @@ if __name__ == "__main__":
     for f in files:
         try:
             result = parser.parse_file(f)
-            output_file = os.path.join("output", os.path.basename(f).replace(".xlsx", ".json"))
+            output_file = os.path.join("json-templates", os.path.basename(f).replace(".xlsx", ".json"))
             with open(output_file, "w", encoding="utf-8") as json_file:
                 json.dump(result, json_file, indent=2, ensure_ascii=False)
             print(f"Результат для {f} сохранён в {output_file}")
