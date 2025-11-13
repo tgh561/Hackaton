@@ -2,7 +2,7 @@
 from .user import User
 from messages.message import MessageStatus
 from database import db
-from ...entities.messages.message_db import MessageDB
+from ...entities.messages.message_db import message_db
 class Supervisor(User):
     def __init__(self, telegram_id: int):
         super().__init__(telegram_id)
