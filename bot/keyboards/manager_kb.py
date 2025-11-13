@@ -111,3 +111,19 @@ def get_report_period_keyboard():
     
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
+
+def get_help_keyboard():
+    """
+    Клавиатура для раздела помощи менеджера
+    """
+    builder = ReplyKeyboardBuilder()
+    
+    builder.add(
+        KeyboardButton(text="📊 Графики"),
+        KeyboardButton(text="📈 Отчеты"),
+        KeyboardButton(text="👤 Мой профиль"),
+        KeyboardButton(text="🔙 Назад")
+    )
+    
+    builder.adjust(2)
+    return builder.as_markup(resize_keyboard=True)

@@ -5,6 +5,7 @@ def get_inspector_main_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="📋 Мои проверки")],
+            [KeyboardButton(text="📍 Доступные проверки")],
             [KeyboardButton(text="👤 Мой профиль"), KeyboardButton(text="ℹ️ Помощь")],
             [KeyboardButton(text="🔙 В главное меню")]
         ],
@@ -67,4 +68,16 @@ def get_confirm_inspection_keyboard(place_id: str):
                 )
             ]
         ]
+    )
+
+
+def get_help_keyboard():
+    """Клавиатура для раздела помощи"""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📋 Мои проверки"), KeyboardButton(text="📍 Доступные проверки")],
+            [KeyboardButton(text="👤 Мой профиль")],
+            [KeyboardButton(text="🔙 Назад")]
+        ],
+        resize_keyboard=True
     )
