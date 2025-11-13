@@ -1,15 +1,17 @@
 from pathlib import Path
-from json_loader import JsonLoader
+from data_model import ChecklistData
 from score_calculator import ScoreCalculator
 from excel_generator import ExcelGenerator
 
 class ReportGenerator:
-    def __init__(self, loader: JsonLoader, calculator: ScoreCalculator, generator: ExcelGenerator):
-        self.loader = loader
+    def __init__(self, calculator: ScoreCalculator, generator: ExcelGenerator):
         self.calculator = calculator
         self.generator = generator
 
-    def generate_report(self, json_path: Path, output_path: Path) -> Path:
-        data = self.loader.load(json_path)
+    def generate_report(self, data: ChecklistData, output_path: Path) -> Path:
+        """
+        Генерирует отчет из готовых данных ChecklistData
+        Идеально для использования с бэкендом
+        """
         data = self.calculator.calculate_all_scores(data)
         return self.generator.generate(data, output_path)
