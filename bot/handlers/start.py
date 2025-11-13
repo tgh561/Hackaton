@@ -1,6 +1,13 @@
 from aiogram import Router, F
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, ReplyKeyboardRemove
+
+from utils.states import RegistrationStates
+from keyboards.auth_keyboards import get_phone_keyboard, get_role_keyboard
+
+from keyboards.inspector_keyboards import get_inspector_main_keyboard
 
 from database.simple_db import db, UserRole
 
@@ -12,7 +19,8 @@ def get_main_keyboard(user_role: UserRole):
 
     if user_role == UserRole.ADMIN:
         keyboard.append([KeyboardButton(text="👨‍💼 Админ панель")])
-
+    elif user_role == UserRole.INSPECTOR:
+        keyboard.append([KeyboardButton(text="👁️ Панель проверяющего")])
     # Общие кнопки для всех ролей
     keyboard.extend([
         [KeyboardButton(text="👤 Мой профиль")],
@@ -28,10 +36,16 @@ async def cmd_start(message: Message):
     user = db.get_user(message.from_user.id)
 
     if not user:
+        keyboard = []
+
+        keyboard.extend([[
+            KeyboardButton(text="Пройти регистрацию")
+        ]])
+
         await message.answer(
             "👋 Добро пожаловать!\n\n"
-            "❌ Вы не зарегистрированы в системе.\n"
-            "Обратитесь к администратору для получения доступа."
+            "❌ Вы не зарегистрированы в системе.\n",
+            reply_markup=ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
         )
         return
 
@@ -53,6 +67,72 @@ async def cmd_start(message: Message):
         reply_markup=get_main_keyboard(user_role)
     )
 
+
+
+@router.message(F.text == "Пройти регистрацию")
+async def cmd_register(message: Message, state: FSMContext):
+    print(message.from_user.id)
+    user = db.get_user(message.from_user.id)
+    if user:
+        await message.answer("Вы уже зарегистрированы!")
+        return
+
+    await message.answer(
+        "Для регистрации нам нужен ваш номер телефона.\n"
+        "Нажмите кнопку ниже, чтобы поделиться им:",
+        reply_markup=get_phone_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_phone)
+
+
+@router.message(RegistrationStates.waiting_for_phone, F.contact)
+async def process_phone(message: Message, state: FSMContext):
+    contact = message.contact
+    if contact.user_id != message.from_user.id:
+        await message.answer("Пожалуйста, поделитесь своим номером телефона.")
+        return
+
+    await state.update_data(phone=contact.phone_number)
+    await message.answer(
+        "Отлично! Теперь выберите вашу роль:",
+        reply_markup=get_role_keyboard()
+    )
+    await state.set_state(RegistrationStates.waiting_for_role)
+
+
+@router.message(RegistrationStates.waiting_for_role, F.text.in_(["👷 Рабочий", "👨‍💼 Руководитель", "👁️ Проверяющий"]))
+async def process_role(message: Message, state: FSMContext):
+    role_mapping = {
+        "👷 Рабочий": UserRole.WORKER,
+        "👨‍💼 Руководитель": UserRole.MANAGER,
+        "👁️ Проверяющий": UserRole.INSPECTOR
+    }
+
+    role = role_mapping[message.text]
+    user_data = await state.get_data()
+
+    user = db.create_user(
+        telegram_id=message.from_user.id,
+        username=message.from_user.username,
+        first_name=message.from_user.first_name,
+        last_name=message.from_user.last_name,
+        phone=user_data.get('phone'),
+        role=role
+    )
+
+    await message.answer(
+        f"✅ Регистрация завершена!\n"
+        f"Роль: {message.text}\n"
+        f"Телефон: {user_data.get('phone')}",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await state.clear()
+
+
+@router.message(RegistrationStates.waiting_for_role, F.text == "❌ Отмена")
+async def cancel_registration(message: Message, state: FSMContext):
+    await message.answer("Регистрация отменена.", reply_markup=ReplyKeyboardRemove())
+    await state.clear()
 
 @router.message(F.text == "👤 Мой профиль")
 async def cmd_profile(message: Message):
@@ -110,3 +190,18 @@ async def cmd_help(message: Message):
     )
 
     await message.answer(help_text)
+
+
+@router.message(F.text == "👁️ Панель проверяющего")
+async def inspector_panel(message: Message):
+    user = db.get_user(message.from_user.id)
+
+    if not user or UserRole(user['role']) != UserRole.INSPECTOR:
+        await message.answer("❌ У вас нет прав доступа к панели проверяющего.")
+        return
+
+    await message.answer(
+        "👁️ Панель проверяющего\n\n"
+        "Выберите действие:",
+        reply_markup=get_inspector_main_keyboard()
+    )

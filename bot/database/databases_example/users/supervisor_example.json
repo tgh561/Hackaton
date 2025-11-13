@@ -1,13 +1,7 @@
 {
     "telegram_id": 987654321,
-    "username": "supervisor_example",
     "first_name": "Мария",
     "last_name": "Сидорова",
     "phone": "+79997654321",
-    "role": "manager",
-    "department": "Управление производством",
-    "position": "Старший смены",
-    "managed_departments": ["Производственный цех №1", "Производственный цех №2"],
-    "is_active": true,
-    "registered_at": "2024-01-15T10:00:00"
-  }
+    "role": "manager"
+}

@@ -10,17 +10,6 @@ def get_admin_main_keyboard():
         resize_keyboard=True
     )
 
-def get_role_keyboard():
-    return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text="👷 Рабочий")],
-            [KeyboardButton(text="👨‍💼 Руководитель")],
-            [KeyboardButton(text="👁️ Проверяющий")],
-            [KeyboardButton(text="❌ Отмена")]
-        ],
-        resize_keyboard=True
-    )
-
 def get_cancel_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[[KeyboardButton(text="❌ Отмена")]],
@@ -41,4 +30,15 @@ def get_users_format_keyboard():
             [KeyboardButton(text="❌ Отмена")]
         ],
         resize_keyboard=True
+    )
+
+def get_skip_phone_keyboard():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="📱 Отправить телефон", request_contact=True)],
+            [KeyboardButton(text="⏩ Пропустить")],
+            [KeyboardButton(text="❌ Отмена")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
     )

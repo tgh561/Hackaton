@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 def get_phone_keyboard():
     return ReplyKeyboardMarkup(
@@ -15,6 +15,7 @@ def get_role_keyboard():
             [KeyboardButton(text="👷 Рабочий")],
             [KeyboardButton(text="👨‍💼 Руководитель")],
             [KeyboardButton(text="👁️ Проверяющий")],
+            [KeyboardButton(text="👨‍💼 Администратор")],
             [KeyboardButton(text="❌ Отмена")]
         ],
         resize_keyboard=True

@@ -10,12 +10,13 @@ from handlers import routers
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
+bot = Bot(
+    token=BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+)
+
 async def main():
     # Инициализация бота
-    bot = Bot(
-        token=BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-    )
     dp = Dispatcher()
 
     # Регистрация роутеров

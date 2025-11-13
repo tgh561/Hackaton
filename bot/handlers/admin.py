@@ -161,6 +161,7 @@ async def generate_users_pdf_handler(message: Message):
             )
         )
 
+
 @router.message(F.text == "👤 Добавить пользователя")
 async def add_user_start(message: Message, state: FSMContext):
     if not await check_admin(message.from_user.id):
@@ -168,79 +169,213 @@ async def add_user_start(message: Message, state: FSMContext):
 
     await message.answer(
         "👤 Добавление нового пользователя\n\n"
-        "Введите данные в формате:\n"
-        "<b>ID Телеграм, Имя, Фамилия, Роль</b>\n\n"
+        "Введите ФИО пользователя в формате:\n"
+        "<b>Фамилия Имя Отчество</b>\n\n"
         "Пример:\n"
-        "<code>Иван, Петров, worker</code>\n\n"
-        "Доступные роли:\n"
-        "• <code>worker</code> - 👷 Рабочий\n"
-        "• <code>manager</code> - 👨‍💼 Руководитель\n"
-        "• <code>inspector</code> - 👁️ Проверяющий\n"
-        "• <code>admin</code> - 👨‍💼 Администратор",
+        "<code>Иванов Иван Иванович</code>",
         parse_mode="HTML",
+        reply_markup=get_cancel_keyboard()
+    )
+    await state.set_state(AdminStates.waiting_for_full_name)
+
+
+@router.message(AdminStates.waiting_for_full_name, F.text)
+async def process_full_name(message: Message, state: FSMContext):
+    if message.text == "❌ Отмена":
+        await message.answer("❌ Добавление пользователя отменено.", reply_markup=get_admin_main_keyboard())
+        await state.clear()
+        return
+
+    # Проверяем, что введено хотя бы 2 слова (Фамилия и Имя)
+    parts = message.text.strip().split()
+    if len(parts) < 2:
+        await message.answer(
+            "❌ Неверный формат. Введите Фамилию Имя Отчество (минимум Фамилию и Имя)\n\n"
+            "Попробуйте еще раз:",
+            reply_markup=get_cancel_keyboard()
+        )
+        return
+
+    # Сохраняем ФИО
+    last_name = parts[0]
+    first_name = parts[1]
+    middle_name = parts[2] if len(parts) > 2 else ""
+
+    full_name = f"{last_name} {first_name} {middle_name}".strip()
+
+    await state.update_data(
+        last_name=last_name,
+        first_name=first_name,
+        middle_name=middle_name,
+        full_name=full_name
+    )
+
+    await message.answer(
+        f"✅ ФИО сохранено: {full_name}\n\n"
+        "Теперь введите номер телефона пользователя:\n"
+        "• Используйте кнопку ниже для отправки контакта\n"
+        "• Или введите номер вручную в формате +79991234567\n"
+        "• Или пропустите этот шаг",
+        reply_markup=get_skip_phone_keyboard()
+    )
+    await state.set_state(AdminStates.waiting_for_phone)
+
+
+@router.message(AdminStates.waiting_for_phone, F.contact)
+async def process_phone_contact(message: Message, state: FSMContext):
+    contact = message.contact
+    phone = contact.phone_number
+
+    await state.update_data(phone=phone)
+
+    await message.answer(
+        f"✅ Телефон сохранен: {phone}\n\n"
+        "Теперь выберите роль пользователя:",
+        reply_markup=get_role_keyboard()
+    )
+    await state.set_state(AdminStates.waiting_for_role_selection)
+
+
+@router.message(AdminStates.waiting_for_phone, F.text == "⏩ Пропустить")
+async def skip_phone(message: Message, state: FSMContext):
+    await state.update_data(phone="Не указан")
+
+    await message.answer(
+        "✅ Шаг с телефоном пропущен.\n\n"
+        "Теперь выберите роль пользователя:",
+        reply_markup=get_role_keyboard()
+    )
+    await state.set_state(AdminStates.waiting_for_role_selection)
+
+
+@router.message(AdminStates.waiting_for_phone, F.text)
+async def process_phone_text(message: Message, state: FSMContext):
+    if message.text == "❌ Отмена":
+        await message.answer("❌ Добавление пользователя отменено.", reply_markup=get_admin_main_keyboard())
+        await state.clear()
+        return
+
+    phone = message.text.strip()
+
+    # Простая валидация номера телефона
+    if not (phone.startswith('+') and phone[1:].isdigit() and len(phone) >= 10):
+        await message.answer(
+            "❌ Неверный формат номера. Используйте формат +79991234567\n\n"
+            "Попробуйте еще раз:",
+            reply_markup=get_skip_phone_keyboard()
+        )
+        return
+
+    await state.update_data(phone=phone)
+
+    await message.answer(
+        f"✅ Телефон сохранен: {phone}\n\n"
+        "Теперь выберите роль пользователя:",
+        reply_markup=get_role_keyboard()
+    )
+    await state.set_state(AdminStates.waiting_for_role_selection)
+
+
+@router.message(AdminStates.waiting_for_role_selection,
+                F.text.in_(["👷 Рабочий", "👨‍💼 Руководитель", "👁️ Проверяющий", "👨‍💼 Администратор"]))
+async def process_role_selection(message: Message, state: FSMContext):
+    role_mapping = {
+        "👷 Рабочий": UserRole.WORKER,
+        "👨‍💼 Руководитель": UserRole.MANAGER,
+        "👁️ Проверяющий": UserRole.INSPECTOR,
+        "👨‍💼 Администратор": UserRole.ADMIN
+    }
+
+    selected_role = role_mapping[message.text]
+
+    # Получаем сохраненные данные
+    user_data = await state.get_data()
+
+    # Запрашиваем Telegram ID
+    await state.update_data(role=selected_role)
+
+    await message.answer(
+        f"✅ Роль выбрана: {message.text}\n\n"
+        f"Данные пользователя:\n"
+        f"ФИО: {user_data['full_name']}\n"
+        f"Телефон: {user_data.get('phone', 'Не указан')}\n"
+        f"Роль: {message.text}\n\n"
+        "Теперь введите Telegram ID пользователя (число):",
         reply_markup=get_cancel_keyboard()
     )
     await state.set_state(AdminStates.waiting_for_user_data)
 
 
-@router.message(F.text == "⚙️ Изменить роль")
-async def change_role_start(message: Message, state: FSMContext):
-    if not await check_admin(message.from_user.id):
+@router.message(AdminStates.waiting_for_role_selection, F.text == "❌ Отмена")
+async def cancel_role_selection(message: Message, state: FSMContext):
+    await message.answer("❌ Добавление пользователя отменено.", reply_markup=get_admin_main_keyboard())
+    await state.clear()
+
+
+@router.message(AdminStates.waiting_for_user_data, F.text)
+async def process_telegram_id(message: Message, state: FSMContext):
+    if message.text == "❌ Отмена":
+        await message.answer("❌ Добавление пользователя отменено.", reply_markup=get_admin_main_keyboard())
+        await state.clear()
         return
 
-    await message.answer(
-        "⚙️ Изменение роли пользователя\n\n"
-        "Введите данные в формате:\n"
-        "<b>ID пользователя, Новая роль</b>\n\n"
-        "Пример:\n"
-        "<code>123456789, manager</code>\n\n"
-        "Доступные роли:\n"
-        "• <code>worker</code> - 👷 Рабочий\n"
-        "• <code>manager</code> - 👨‍💼 Руководитель\n"
-        "• <code>inspector</code> - 👁️ Проверяющий\n"
-        "• <code>admin</code> - 👨‍💼 Администратор",
-        parse_mode="HTML",
-        reply_markup=get_cancel_keyboard()
-    )
-    await state.set_state(AdminStates.waiting_for_role_change)
+    try:
+        telegram_id = int(message.text.strip())
+
+        # Получаем все сохраненные данные
+        user_data = await state.get_data()
+
+        # Проверяем, существует ли пользователь с таким ID
+        existing_user = db.get_user(telegram_id)
+        if existing_user:
+            await message.answer(
+                f"❌ Пользователь с ID {telegram_id} уже существует!",
+                reply_markup=get_admin_main_keyboard()
+            )
+            await state.clear()
+            return
+
+        # Создаем пользователя
+        user = db.create_user(
+            telegram_id=telegram_id,
+            username="",  # Будет заполнено при первом входе
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+            role=user_data['role'],
+            phone=user_data.get('phone', 'Не указан')
+        )
+
+        role_names = {
+            UserRole.WORKER: "👷 Рабочий",
+            UserRole.MANAGER: "👨‍💼 Руководитель",
+            UserRole.INSPECTOR: "👁️ Проверяющий",
+            UserRole.ADMIN: "👨‍💼 Администратор"
+        }
+
+        await message.answer(
+            f"✅ Пользователь успешно добавлен!\n\n"
+            f"👤 {user_data['full_name']}\n"
+            f"ID: {user['telegram_id']}\n"
+            f"Телефон: {user_data.get('phone', 'Не указан')}\n"
+            f"Роль: {role_names[user_data['role']]}\n"
+            f"Статус: ✅ Активен",
+            reply_markup=get_admin_main_keyboard()
+        )
+        await state.clear()
+
+    except ValueError:
+        await message.answer("❌ Ошибка: ID должен быть числом\n\nПопробуйте еще раз:",
+                             reply_markup=get_cancel_keyboard())
+    except Exception as e:
+        await message.answer(f"❌ Ошибка при добавлении пользователя: {str(e)}\n\nПопробуйте еще раз:",
+                             reply_markup=get_cancel_keyboard())
 
 
-@router.message(F.text == "📊 Статистика")
-async def show_stats(message: Message):
-    if not await check_admin(message.from_user.id):
-        return
-
-    users = db.get_all_users()
-
-    stats = {
-        UserRole.ADMIN.value: 0,
-        UserRole.MANAGER.value: 0,
-        UserRole.INSPECTOR.value: 0,
-        UserRole.WORKER.value: 0
-    }
-
-    active_users = 0
-    for user_data in users.values():
-        stats[user_data['role']] += 1
-        if user_data.get('is_active', True):
-            active_users += 1
-
-    role_names = {
-        UserRole.WORKER.value: "👷 Рабочие",
-        UserRole.MANAGER.value: "👨‍💼 Руководители",
-        UserRole.INSPECTOR.value: "👁️ Проверяющие",
-        UserRole.ADMIN.value: "👨‍💼 Администраторы"
-    }
-
-    stats_text = "📊 Статистика пользователей:\n\n"
-    for role, count in stats.items():
-        stats_text += f"{role_names[role]}: {count}\n"
-
-    stats_text += f"\n✅ Активных: {active_users}\n"
-    stats_text += f"📊 Всего пользователей: {len(users)}"
-
-    await message.answer(stats_text, reply_markup=get_back_to_admin_keyboard())
-
+# Обработка отмены для всех состояний
+@router.message(StateFilter(AdminStates), F.text == "❌ Отмена")
+async def cancel_handler(message: Message, state: FSMContext):
+    await message.answer("❌ Операция отменена.", reply_markup=get_admin_main_keyboard())
+    await state.clear()
 
 # Обработчики для состояний FSM
 @router.message(AdminStates.waiting_for_user_data, F.text)

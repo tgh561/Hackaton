@@ -1,12 +1,7 @@
 {
     "telegram_id": 111111111,
-    "username": "worker_example",
     "first_name": "Сергей",
     "last_name": "Иванов",
     "phone": "+79991111111",
-    "role": "worker",
-    "department": "Производственный цех №1",
-    "position": "Оператор станка",
-    "is_active": true,
-    "registered_at": "2024-01-15T10:00:00"
-  }
+    "role": "worker"
+}

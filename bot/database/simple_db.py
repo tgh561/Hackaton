@@ -9,13 +9,21 @@ class UserRole(Enum):
     MANAGER = "manager"
     INSPECTOR = "inspector"
     ADMIN = "admin"
-    SUPERVISOR = "supervisor"
+
+
+class InspectionStatus(Enum):
+    PENDING = "pending"  # Ожидает подтверждения
+    SCHEDULED = "scheduled"  # Подтверждена
+    REJECTED = "rejected"  # Отклонена
+    COMPLETED = "completed"  # Завершена
+
 
 class SimpleDB:
     def __init__(self, db_file: str = "users.json"):
         self.db_file = db_file
         self.users = self._load_data()
         self._create_default_users()
+        self._create_default_inspections()
 
     def _load_data(self):
         if os.path.exists(self.db_file):
@@ -92,21 +100,66 @@ class SimpleDB:
 
         self._save_data()
 
+    def _create_default_inspections(self):
+        """Создает тестовые проверки"""
+        if 'inspections' not in self.users:
+            self.users['inspections'] = {}
+
+        default_inspections = {
+            "1": {
+                'id': 1,
+                'location': 'Строительная площадка №1',
+                'manager_id': 987654321,  # ID бригадира
+                'inspector_id': 555555555,  # ID проверяющего
+                'scheduled_time': None,
+                'status': InspectionStatus.PENDING.value,
+                'created_at': datetime.now().isoformat(),
+                'proposed_time': None,
+                'rejection_reason': None,
+                'alternative_time': None
+            },
+            "2": {
+                'id': 2,
+                'location': 'Офисное здание №2',
+                'manager_id': 987654321,
+                'inspector_id': None,  # Свободная проверка
+                'scheduled_time': None,
+                'status': InspectionStatus.PENDING.value,
+                'created_at': datetime.now().isoformat(),
+                'proposed_time': None,
+                'rejection_reason': None,
+                'alternative_time': None
+            }
+        }
+
+        for inspection_id, inspection_data in default_inspections.items():
+            if inspection_id not in self.users['inspections']:
+                self.users['inspections'][inspection_id] = inspection_data
+
+        self._save_data()
+
     def get_user(self, telegram_id: int):
         return self.users.get(str(telegram_id))
 
     def get_all_users(self):
         """Возвращает всех пользователей"""
-        return self.users
+        return {k: v for k, v in self.users.items() if k.isdigit()}
+
+    def get_managers(self):
+        """Возвращает всех руководителей"""
+        return {k: v for k, v in self.users.items() if k.isdigit() and v.get('role') == UserRole.MANAGER.value}
+
 
     def create_user(self, telegram_id: int, username: str, first_name: str,
                     last_name: str, role: UserRole, phone: str = None):
         user_data = {
             'telegram_id': telegram_id,
+            'username': username,
             'first_name': first_name,
             'last_name': last_name,
             'phone': phone,
             'role': role.value,
+            'registered_at': datetime.now().isoformat(),
             'is_active': True
         }
         self.users[str(telegram_id)] = user_data

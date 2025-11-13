@@ -1,0 +1,35 @@
+{
+  "place": "place_1",
+  "sections": {
+    "A1": {
+      "points": {
+        "1": {
+          "problem": "",
+          "mark": true,
+          "comment": ""
+        },
+        "2": {
+          "problem": "",
+          "mark": false,
+          "comment": ""
+        }
+      }
+    },
+    "B1": {
+      "points": {
+        "1": {
+          "problem": "",
+          "mark": true,
+          "comment": ""
+        },
+        "2": {
+          "problem": "",
+          "mark": false,
+          "comment": ""
+        }
+      }
+    }
+  },
+
+  "date": "date"
+}
