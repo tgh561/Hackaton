@@ -10,11 +10,11 @@ from keyboards.admin_keyboards import get_admin_main_keyboard, get_cancel_keyboa
 
 # Пробуем импортировать PDF генератор
 try:
-    from utils.smart_pdf_generator import generate_users_pdf
+    from ..utils.pdf_generator import generate_users_pdf
     PDF_AVAILABLE = True
 except ImportError:
     try:
-        from utils.simple_pdf_generator import generate_users_pdf_simple as generate_users_pdf
+        from ..utils.pdf_generator import generate_users_pdf_simple as generate_users_pdf
         PDF_AVAILABLE = True
     except ImportError:
         PDF_AVAILABLE = False
